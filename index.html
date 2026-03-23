@@ -1,5 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Methodology</title>
+
+  <!-- KaTeX -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css"/>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body, {
+      delimiters: [
+        {left: '$$', right: '$$', display: true},
+        {left: '$',  right: '$',  display: false}
+      ]
+    });"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Georgia', serif;
+      font-size: 17px;
+      line-height: 1.85;
+      color: #1c1c2e;
+      background: #ffffff;
+      padding: 56px 48px;
+      max-width: 820px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-family: 'Arial', sans-serif;
+      font-size: 1.55rem;
+      font-weight: 700;
+      color: #1c1c2e;
+      letter-spacing: 0.02em;
+      margin-bottom: 8px;
+    }
+
+    .rule {
+      border: none;
+      border-top: 2.5px solid #2e4a7a;
+      margin-bottom: 32px;
+    }
+
+    p {
+      margin-bottom: 24px;
+      text-align: justify;
+      hyphens: auto;
+    }
+
+    .katex-display {
+      margin: 28px 0 !important;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 4px 0;
+    }
+
+    .katex { font-size: 1.05em; }
+
+    sup {
+      font-size: 0.72em;
+      vertical-align: super;
+      line-height: 0;
+      color: #2e4a7a;
+    }
+
+    .footnote {
+      margin-top: 40px;
+      padding-top: 16px;
+      border-top: 1px solid #c8d4e8;
+      font-size: 0.84rem;
+      color: #555577;
+      font-style: italic;
+      line-height: 1.7;
+    }
+
+    .footnote a {
+      color: #2e4a7a;
+      text-decoration: none;
+      border-bottom: 1px dotted #2e4a7a;
+    }
+
+    .result {
+      margin: 28px 0;
+      padding: 16px 24px;
+      background: #eef3fb;
+      border-left: 4px solid #2e4a7a;
+      border-radius: 4px;
+      font-family: 'Arial', sans-serif;
+      font-size: 1rem;
+      color: #1c1c2e;
+    }
+  </style>
+</head>
 <body>
-xxx
+
+  <h1>Methodology</h1>
+  <hr class="rule"/>
+
   <p>
     The estimation is produced based on IOM Missing Migrants Project data on the number of
     dead/missing and the countries and regions of origin of those who have died, and the average
@@ -10,21 +110,22 @@ xxx
 
   <p>
     Data on dead or missing persons falls into three categories with regard to the specified area
-    of origin: those for which the country of origin in known, those for which the region (but not country)
-    of origin is known, and those for which no origin in known. We first consider the case of known
-    countries of origin. We denote by $m_i$ the number of dead of missing persons from country $i$,
-    by $h_i$ the average household size in country $i$, and by $h_i^{(n)}$ the average household
-    size in province $n$ of country $i$, where the latter two variables were obtained from the global
-    database of Esteve et al. (2024).<sup>1</sup> The estimated number of household members of dead
-    or missing persons with known origin country $i$ is then given by $m_i \cdot (h_i - 1)$, where the ‘-1’
-    reflects that we excluded the dead of missing persons themselves in the calculation. We defined the
-    uncertainty of this estimate as $\hat{\sigma}_i = \varsigma_i \cdot m_i$, where $\varsigma_i$ denotes
-    the standard deviation of $\{h_i^{(n)}\}_n$, which we use as a measure of the variation in household
-    size within country $i$.
+    of origin: those for which the <em>country</em> of origin is known, those for which the
+    <em>region</em> (but not country) of origin is known, and those for which no origin is known.
+    We first consider the case of known countries of origin. We denote by $m_i$ the number of dead
+    or missing persons from country $i$, by $h_i$ the average household size in country $i$, and
+    by $h_i^{(n)}$ the average household size in province $n$ of country $i$, where the latter two
+    variables were obtained from the global database of Esteve et al. (2024).<sup>1</sup> The
+    estimated number of household members of dead or missing persons with known origin country $i$
+    is then given by $m_i \cdot (h_i - 1)$, where the $-1$ reflects that we excluded the dead or
+    missing persons themselves in the calculation. We defined the uncertainty of this estimate as
+    $\hat{\sigma}_i = \varsigma_i \cdot m_i$, where $\varsigma_i$ denotes the standard deviation
+    of $\bigl\{h_i^{(n)}\bigr\}_n$, which we use as a measure of the variation in household size
+    within country $i$.
   </p>
 
   <p>
-    When only the region of origin, $j$, is known, we estimated the average household
+    When only the <em>region</em> of origin, $j$, is known, we estimated the average household
     size associated with dead or missing persons of that region as
   </p>
 
@@ -58,7 +159,8 @@ xxx
 
   <p>
     Finally, the estimated total number of household members associated with the
-    $\sum_i m_i + \sum_j m_j + m_{?} = 78,878$ dead or missing persons recorded globally is given by
+    $\sum_i m_i + \sum_j m_j + m_{?} = 78{,}878$ dead or missing persons recorded globally is
+    given by
   </p>
 
   $$\sum_{i} m_i \cdot (h_i - 1) \;+\; \sum_{j} m_j \cdot (\hat{h}_j - 1) \;+\; m_{?} \cdot (\hat{h}_{?} - 1)$$
@@ -66,10 +168,6 @@ xxx
   <p>with uncertainty</p>
 
   $$\sqrt{\;\sum_{i} \hat{\sigma}_i^2 \;+\; \sum_{j} \hat{\sigma}_j^2 \;+\; \hat{\sigma}_{?}^2\;}$$
-
-  <p>
-    amounting to an estimated 342,488 (±36,183) household members. Region-specific estimates and uncertainties of the number of household members were calculated analogously and are shown in the table below. Note that only the global estimate also includes persons with unknown origin.
-  </p>
 
   <div class="result">
     &#8594; Estimated total: <strong>342,488 &plusmn; 36,183</strong> household members affected
@@ -85,3 +183,4 @@ xxx
   </div>
 
 </body>
+</html>
