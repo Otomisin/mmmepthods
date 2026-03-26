@@ -10,11 +10,11 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --c1: #0033A0;
-    --panel: rgba(255,255,255,0.96);
-    --border: rgba(0,0,0,0.09);
-    --text: #1a1a1a;
-    --muted: #666;
+	  --c1: #0033A0;   /* main background */
+	  --panel: rgba(255,255,255,0.72);
+	  --border: rgba(0,0,0,0.09);
+	  --text: #1a1a1a;
+	  --muted: #666;
   }
 
   html, body {
@@ -32,7 +32,9 @@
 
   #topbar {
     position: absolute;
-    top: 0; left: 0; right: 0;
+    top: 0;
+    left: 0;
+    right: 0;
     z-index: 1000;
     background: var(--c1);
     display: flex;
@@ -73,19 +75,20 @@
     left: 16px;
     bottom: 16px;
     z-index: 900;
-    width: 270px;
+    width: 220px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
   }
 
   .pcard {
     background: var(--panel);
     border: 0.5px solid var(--border);
-    border-radius: 12px;
-    padding: 16px;
+    border-radius: 10px;
+    padding: 12px;
     backdrop-filter: blur(8px);
-    box-shadow: 0 6px 24px rgba(0,0,0,0.06);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 4px 18px rgba(0,0,0,0.05);
   }
 
   .pcard h2 {
@@ -94,22 +97,22 @@
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--muted);
-    margin-bottom: 12px;
+    margin-bottom: 10px;
   }
 
   .var-group {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 5px;
   }
 
   .var-option {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     cursor: pointer;
-    padding: 8px 10px;
-    border-radius: 8px;
+    padding: 6px 8px;
+    border-radius: 7px;
     transition: background 0.15s ease;
   }
 
@@ -126,8 +129,8 @@
   }
 
   .radio-dot {
-    width: 14px;
-    height: 14px;
+    width: 13px;
+    height: 13px;
     border-radius: 50%;
     border: 2px solid #c8c8c8;
     flex-shrink: 0;
@@ -143,8 +146,8 @@
 
   .radio-dot::after {
     content: '';
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
     border-radius: 50%;
     background: currentColor;
     opacity: 0;
@@ -156,28 +159,28 @@
   }
 
   .var-label {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text);
     font-weight: 400;
   }
 
   .var-count {
     margin-left: auto;
-    font-size: 11px;
+    font-size: 10px;
     font-family: 'DM Mono', monospace;
     color: var(--muted);
   }
 
-  .var-option[data-var="Total"]    { color: #0033A0; }
-  .var-option[data-var="Dead"]     { color: #D1495B; }
+  .var-option[data-var="Total"]    { color: #FFB81C; }
+  .var-option[data-var="Dead"]     { color: #D22630; }
   .var-option[data-var="Missing"]  { color: #2A9D8F; }
-  .var-option[data-var="Females"]  { color: #9B5DE5; }
+  .var-option[data-var="Females"]  { color: #FF671F }
   .var-option[data-var="Males"]    { color: #F4A261; }
   .var-option[data-var="Children"] { color: #3A86FF; }
 
   .panel-note {
-    font-size: 11px;
-    line-height: 1.5;
+    font-size: 10px;
+    line-height: 1.45;
     color: var(--muted);
     margin-top: 8px;
   }
@@ -194,9 +197,13 @@
     min-width: 220px;
   }
 
-  .leaflet-popup-tip { display: none; }
+  .leaflet-popup-tip {
+    display: none;
+  }
 
-  .popup-inner { padding: 14px 16px; }
+  .popup-inner {
+    padding: 14px 16px;
+  }
 
   .popup-title {
     font-size: 13px;
@@ -231,9 +238,9 @@
     font-family: 'DM Mono', monospace;
   }
 
-  .popup-stat .val.highlight {
-    color: var(--c1);
-  }
+	.popup-stat .val.highlight {
+	  color: #FFB81C;
+	}
 
   .popup-footer {
     border-top: 0.5px solid var(--border);
@@ -292,19 +299,19 @@
 
   @keyframes softPulse {
     0% {
-      fill-opacity: 0.22;
-      stroke-opacity: 0.38;
-      stroke-width: 1.1;
+      fill-opacity: 0.18;
+      stroke-opacity: 0.32;
+      stroke-width: 1.0;
     }
     50% {
-      fill-opacity: 0.42;
-      stroke-opacity: 0.60;
-      stroke-width: 1.6;
+      fill-opacity: 0.34;
+      stroke-opacity: 0.52;
+      stroke-width: 1.4;
     }
     100% {
-      fill-opacity: 0.22;
-      stroke-opacity: 0.38;
-      stroke-width: 1.1;
+      fill-opacity: 0.18;
+      stroke-opacity: 0.32;
+      stroke-width: 1.0;
     }
   }
 
@@ -402,8 +409,8 @@ const COL_MAP = {
 };
 
 const VAR_COLORS = {
-  Total: '#0033A0',
-  Dead: '#D1495B',
+  Total: '#FFB81C',
+  Dead: '#D22630',
   Missing: '#2A9D8F',
   Females: '#9B5DE5',
   Males: '#F4A261',
@@ -528,7 +535,7 @@ function shouldPulse(index, val, maxVal) {
 
 function updateMarkers() {
   const maxVal = Math.max(...markerObjects.map(obj => getVal(obj.row, currentVar)), 1);
-  const markerColor = VAR_COLORS[currentVar] || '#0033A0';
+  const markerColor = VAR_COLORS[currentVar] || '#FFB81C';
 
   markerObjects.forEach(obj => {
     const val = getVal(obj.row, currentVar);
@@ -552,9 +559,9 @@ function updateMarkers() {
     obj.circle.setStyle({
       fillColor: markerColor,
       color: markerColor,
-      fillOpacity: 0.28,
-      opacity: 0.5,
-      weight: 1.2
+      fillOpacity: 0.24,
+      opacity: 0.42,
+      weight: 1.1
     });
 
     if (obj.circle._path) {
