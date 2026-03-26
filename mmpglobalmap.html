@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Missing Migrants — Incident Map</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --c1: #0033A0;
+    --panel: rgba(255,255,255,0.96);
+    --border: rgba(0,0,0,0.09);
+    --text: #1a1a1a;
+    --muted: #666;
+  }
+
+  html, body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  #map {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  #topbar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    z-index: 1000;
+    background: var(--c1);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 20px;
+    height: 52px;
+  }
+
+  #topbar h1 {
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  #topbar .tag {
+    background: rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.85);
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-weight: 400;
+  }
+
+  #topbar .spacer { flex: 1; }
+
+  #counter {
+    color: rgba(255,255,255,0.75);
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    white-space: nowrap;
+  }
+
+  #panel {
+    position: absolute;
+    left: 16px;
+    bottom: 16px;
+    z-index: 900;
+    width: 270px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .pcard {
+    background: var(--panel);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.06);
+  }
+
+  .pcard h2 {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .var-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .var-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 8px 10px;
+    border-radius: 8px;
+    transition: background 0.15s ease;
+  }
+
+  .var-option:hover {
+    background: rgba(0,0,0,0.04);
+  }
+
+  .var-option.active {
+    background: rgba(0,0,0,0.06);
+  }
+
+  .var-option input[type=radio] {
+    display: none;
+  }
+
+  .radio-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid #c8c8c8;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.15s;
+  }
+
+  .var-option.active .radio-dot {
+    border-color: currentColor;
+  }
+
+  .radio-dot::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .var-option.active .radio-dot::after {
+    opacity: 1;
+  }
+
+  .var-label {
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 400;
+  }
+
+  .var-count {
+    margin-left: auto;
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    color: var(--muted);
+  }
+
+  .var-option[data-var="Total"]    { color: #0033A0; }
+  .var-option[data-var="Dead"]     { color: #D1495B; }
+  .var-option[data-var="Missing"]  { color: #2A9D8F; }
+  .var-option[data-var="Females"]  { color: #9B5DE5; }
+  .var-option[data-var="Males"]    { color: #F4A261; }
+  .var-option[data-var="Children"] { color: #3A86FF; }
+
+  .panel-note {
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+
+  .leaflet-popup-content-wrapper {
+    border-radius: 10px !important;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.15) !important;
+    border: 0.5px solid var(--border) !important;
+    padding: 0 !important;
+  }
+
+  .leaflet-popup-content {
+    margin: 0 !important;
+    min-width: 220px;
+  }
+
+  .leaflet-popup-tip { display: none; }
+
+  .popup-inner { padding: 14px 16px; }
+
+  .popup-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  .popup-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .popup-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 12px;
+  }
+
+  .popup-stat .label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .popup-stat .val {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .popup-stat .val.highlight {
+    color: var(--c1);
+  }
+
+  .popup-footer {
+    border-top: 0.5px solid var(--border);
+    padding: 8px 16px;
+    font-size: 10px;
+    color: var(--muted);
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .pill {
+    background: #f0f0f0;
+    border-radius: 20px;
+    padding: 2px 8px;
+  }
+
+  #loading {
+    position: absolute;
+    inset: 0;
+    z-index: 9999;
+    background: var(--c1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: #fff;
+    font-size: 14px;
+    transition: opacity 0.4s;
+  }
+
+  #loading.fade {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .pulse-marker {
+    animation: softPulse 2.8s ease-in-out infinite;
+    transform-origin: center;
+    transform-box: fill-box;
+  }
+
+  @keyframes softPulse {
+    0% {
+      fill-opacity: 0.22;
+      stroke-opacity: 0.38;
+      stroke-width: 1.1;
+    }
+    50% {
+      fill-opacity: 0.42;
+      stroke-opacity: 0.60;
+      stroke-width: 1.6;
+    }
+    100% {
+      fill-opacity: 0.22;
+      stroke-opacity: 0.38;
+      stroke-width: 1.1;
+    }
+  }
+
+  @media (max-width: 600px) {
+    #panel {
+      width: calc(100vw - 32px);
+      left: 16px;
+      right: 16px;
+      bottom: 16px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <span>Loading incidents…</span>
+</div>
+
+<div id="topbar">
+  <h1>Missing Migrants — Incident Map</h1>
+  <span class="tag">IOM MMP</span>
+  <div class="spacer"></div>
+  <span id="counter">— incidents</span>
+</div>
+
+<div id="map"></div>
+
+<div id="panel">
+  <div class="pcard">
+    <h2>Display variable</h2>
+    <div class="var-group" id="varGroup">
+      <label class="var-option active" data-var="Total">
+        <input type="radio" name="variable" value="Total" checked>
+        <span class="radio-dot"></span>
+        <span class="var-label">Total</span>
+        <span class="var-count" id="cnt-Total">—</span>
+      </label>
+
+      <label class="var-option" data-var="Dead">
+        <input type="radio" name="variable" value="Dead">
+        <span class="radio-dot"></span>
+        <span class="var-label">Dead</span>
+        <span class="var-count" id="cnt-Dead">—</span>
+      </label>
+
+      <label class="var-option" data-var="Missing">
+        <input type="radio" name="variable" value="Missing">
+        <span class="radio-dot"></span>
+        <span class="var-label">Missing</span>
+        <span class="var-count" id="cnt-Missing">—</span>
+      </label>
+
+      <label class="var-option" data-var="Females">
+        <input type="radio" name="variable" value="Females">
+        <span class="radio-dot"></span>
+        <span class="var-label">Females</span>
+        <span class="var-count" id="cnt-Females">—</span>
+      </label>
+
+      <label class="var-option" data-var="Males">
+        <input type="radio" name="variable" value="Males">
+        <span class="radio-dot"></span>
+        <span class="var-label">Males</span>
+        <span class="var-count" id="cnt-Males">—</span>
+      </label>
+
+      <label class="var-option" data-var="Children">
+        <input type="radio" name="variable" value="Children">
+        <span class="radio-dot"></span>
+        <span class="var-label">Children</span>
+        <span class="var-count" id="cnt-Children">—</span>
+      </label>
+    </div>
+
+    <div class="panel-note">
+      Circle size and color change with the selected variable.
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+<script>
+const VARS = ['Total', 'Dead', 'Missing', 'Females', 'Males', 'Children'];
+
+const COL_MAP = {
+  Total: 'Total',
+  Dead: 'Dead',
+  Missing: 'Missing',
+  Females: 'Females',
+  Males: 'Males',
+  Children: 'Children'
+};
+
+const VAR_COLORS = {
+  Total: '#0033A0',
+  Dead: '#D1495B',
+  Missing: '#2A9D8F',
+  Females: '#9B5DE5',
+  Males: '#F4A261',
+  Children: '#3A86FF'
+};
+
+const map = L.map('map', {
+  center: [20, 15],
+  zoom: 3,
+  zoomControl: false,
+  attributionControl: true,
+  dragging: true,
+  scrollWheelZoom: true,
+  doubleClickZoom: true,
+  boxZoom: true,
+  keyboard: true,
+  touchZoom: true
+});
+
+L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  attribution: '© OpenStreetMap © CARTO',
+  subdomains: 'abcd',
+  maxZoom: 19
+}).addTo(map);
+
+let allData = [];
+let markerObjects = [];
+let currentVar = 'Total';
+
+function getVal(row, variable) {
+  return parseFloat(row[COL_MAP[variable]]) || 0;
+}
+
+function calcRadius(val, maxVal) {
+  if (!val || val <= 0) return 0;
+  return Math.max(4, Math.sqrt(val / maxVal) * 34);
+}
+
+function formatCount(val) {
+  if (val >= 1000000) return (val / 1000000).toFixed(1) + 'm';
+  if (val >= 1000) return (val / 1000).toFixed(1) + 'k';
+  return Math.round(val).toLocaleString();
+}
+
+function updateCounts() {
+  VARS.forEach(v => {
+    const total = allData.reduce((sum, row) => sum + getVal(row, v), 0);
+    const el = document.getElementById('cnt-' + v);
+    if (el) el.textContent = formatCount(total);
+  });
+}
+
+function buildPopup(row) {
+  const causeShort = (row['Cause of Death'] || 'Unknown')
+    .split('/')[0]
+    .trim()
+    .slice(0, 60);
+
+  return `
+    <div class="popup-inner">
+      <div class="popup-title">${row['Location description'] || row['Country of Incident'] || 'Unknown location'}</div>
+      <div class="popup-sub">${row['Incident date'] || ''}</div>
+      <div class="popup-grid">
+        <div class="popup-stat"><div class="label">Dead</div><div class="val">${row.Dead || 0}</div></div>
+        <div class="popup-stat"><div class="label">Missing</div><div class="val">${row.Missing || 0}</div></div>
+        <div class="popup-stat"><div class="label">Total</div><div class="val highlight">${row.Total || 0}</div></div>
+        <div class="popup-stat"><div class="label">Females</div><div class="val">${row.Females || 0}</div></div>
+        <div class="popup-stat"><div class="label">Males</div><div class="val">${row.Males || 0}</div></div>
+        <div class="popup-stat"><div class="label">Children</div><div class="val">${row.Children || 0}</div></div>
+      </div>
+    </div>
+    <div class="popup-footer">
+      <span class="pill">${row['Country of Incident'] || '—'}</span>
+      <span class="pill">${row['Country of Origin'] || '—'}</span>
+      <span class="pill">${causeShort}</span>
+    </div>
+  `;
+}
+
+function createMarkersOnce() {
+  markerObjects = [];
+
+  const validRows = allData.filter(row => {
+    const lat = parseFloat(row.Latitude);
+    const lng = parseFloat(row.Longitude);
+    return !isNaN(lat) && !isNaN(lng);
+  });
+
+  validRows.forEach((row, index) => {
+    const lat = parseFloat(row.Latitude);
+    const lng = parseFloat(row.Longitude);
+
+    const circle = L.circleMarker([lat, lng], {
+      radius: 0,
+      fillColor: VAR_COLORS[currentVar],
+      fillOpacity: 0,
+      color: VAR_COLORS[currentVar],
+      weight: 1.2,
+      opacity: 0
+    });
+
+    circle.bindPopup(buildPopup(row), { maxWidth: 300 });
+    circle.addTo(map);
+
+    markerObjects.push({
+      row,
+      circle,
+      index
+    });
+  });
+}
+
+function shouldPulse(index, val, maxVal) {
+  if (val <= 0) return false;
+  if (val < 2) return false;
+
+  const normalized = val / maxVal;
+  return index % 3 === 0 || normalized >= 0.45;
+}
+
+function updateMarkers() {
+  const maxVal = Math.max(...markerObjects.map(obj => getVal(obj.row, currentVar)), 1);
+  const markerColor = VAR_COLORS[currentVar] || '#0033A0';
+
+  markerObjects.forEach(obj => {
+    const val = getVal(obj.row, currentVar);
+    const radius = calcRadius(val, maxVal);
+
+    if (radius <= 0) {
+      obj.circle.setRadius(0);
+      obj.circle.setStyle({
+        fillOpacity: 0,
+        opacity: 0,
+        weight: 0
+      });
+
+      if (obj.circle._path) {
+        obj.circle._path.classList.remove('pulse-marker');
+      }
+      return;
+    }
+
+    obj.circle.setRadius(radius);
+    obj.circle.setStyle({
+      fillColor: markerColor,
+      color: markerColor,
+      fillOpacity: 0.28,
+      opacity: 0.5,
+      weight: 1.2
+    });
+
+    if (obj.circle._path) {
+      if (shouldPulse(obj.index, val, maxVal)) {
+        obj.circle._path.classList.add('pulse-marker');
+      } else {
+        obj.circle._path.classList.remove('pulse-marker');
+      }
+    }
+  });
+
+  document.getElementById('counter').textContent = `${markerObjects.length.toLocaleString()} incidents`;
+}
+
+document.getElementById('varGroup').addEventListener('click', e => {
+  const opt = e.target.closest('.var-option');
+  if (!opt) return;
+
+  document.querySelectorAll('.var-option').forEach(o => o.classList.remove('active'));
+  opt.classList.add('active');
+
+  currentVar = opt.dataset.var;
+  updateMarkers();
+});
+
+Papa.parse('./missingmig.csv', {
+  download: true,
+  header: true,
+  skipEmptyLines: true,
+  complete(results) {
+    allData = results.data.filter(row => row.Latitude && row.Longitude);
+
+    updateCounts();
+    createMarkersOnce();
+    updateMarkers();
+
+    const loading = document.getElementById('loading');
+    loading.classList.add('fade');
+    setTimeout(() => loading.remove(), 500);
+  },
+  error(err) {
+    console.error(err);
+    document.getElementById('loading').innerHTML =
+      '<span style="color:#fff;font-size:14px;">Could not load missingmig.csv — make sure it is in the same folder as index.html</span>';
+  }
+});
+</script>
+</body>
+</html>
