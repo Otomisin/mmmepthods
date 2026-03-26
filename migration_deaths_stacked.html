@@ -1,29 +1,14 @@
 
 <div style="padding: 1.5rem 1rem 2rem; font-family: var(--font-sans);">
 
-  <div style="display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; margin-bottom: 2rem;">
-    <div style="background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.8rem 1rem; text-align: center;">
-      <div style="font-size: 11px; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Countries</div>
-      <div style="font-size: 22px; font-weight: 500; color: var(--color-text-primary);">11</div>
-    </div>
-    <div style="background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.8rem 1rem; text-align: center;">
-      <div style="font-size: 11px; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Dead or missing</div>
-      <div style="font-size: 22px; font-weight: 500; color: var(--color-text-primary);">21,254</div>
-    </div>
-    <div style="background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.8rem 1rem; text-align: center;">
-      <div style="font-size: 11px; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Households affected</div>
-      <div style="font-size: 22px; font-weight: 500; color: var(--color-text-primary);">103,384</div>
-    </div>
-  </div>
-
   <div style="display: flex; gap: 20px; margin-bottom: 1.2rem; flex-wrap: wrap;">
-    <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-text-secondary);">
+    <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #555;">
       <span style="display:inline-block;width:14px;height:10px;border-radius:2px;background:#0033A0;"></span> Dead or missing
     </div>
-    <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-text-secondary);">
+    <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #555;">
       <span style="display:inline-block;width:14px;height:10px;border-radius:2px;background:#8099D0;"></span> Additional household members
     </div>
-    <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-text-secondary);">
+    <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #555;">
       <span style="display:inline-block;width:3px;height:14px;background:#FF671F;border-radius:1px;"></span> Uncertainty (±)
     </div>
   </div>
@@ -32,7 +17,7 @@
     <canvas id="impactChart"></canvas>
   </div>
 
-  <div style="margin-top: 1rem; font-size: 11px; color: var(--color-text-secondary); border-top: 0.5px solid var(--color-border-tertiary); padding-top: 0.75rem;">
+  <div style="margin-top: 1rem; font-size: 11px; color: #777; border-top: 0.5px solid #ddd; padding-top: 0.75rem;">
     Error bars show estimated uncertainty (±) in total household member counts. Sorted by total household impact.
   </div>
 </div>
@@ -52,11 +37,6 @@ const raw = [
   { country: 'Guatemala',   dead:  808, household:  3118, unc:  364 },
   { country: 'Venezuela',   dead:  821, household:  2750, unc:  189 },
 ].sort((a, b) => b.household - a.household);
-
-const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
-const gridCol  = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)';
-const textCol  = isDark ? 'rgba(255,255,255,0.75)' : '#333';
-const textMuted = isDark ? 'rgba(255,255,255,0.4)' : '#888';
 
 const errorBarPlugin = {
   id: 'errorBars',
@@ -91,7 +71,6 @@ new Chart(document.getElementById('impactChart'), {
         label: 'Dead or missing',
         data: raw.map(d => d.dead),
         backgroundColor: '#0033A0',
-        borderColor: '#0033A0',
         borderWidth: 0,
         borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 3, bottomRight: 3 },
         borderSkipped: false,
@@ -100,8 +79,7 @@ new Chart(document.getElementById('impactChart'), {
       {
         label: 'Additional household members',
         data: raw.map(d => d.household - d.dead),
-        backgroundColor: isDark ? 'rgba(128,153,208,0.55)' : 'rgba(128,153,208,0.45)',
-        borderColor: isDark ? '#8099D0' : '#8099D0',
+        backgroundColor: 'rgba(128,153,208,0.45)',
         borderWidth: 0,
         borderRadius: { topLeft: 3, topRight: 3, bottomLeft: 0, bottomRight: 0 },
         borderSkipped: false,
@@ -117,10 +95,10 @@ new Chart(document.getElementById('impactChart'), {
     scales: {
       x: {
         stacked: true,
-        grid: { color: gridCol },
+        grid: { color: 'rgba(0,0,0,0.06)' },
         border: { display: false },
         ticks: {
-          color: textMuted,
+          color: '#999',
           font: { size: 11 },
           callback: v => v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v
         }
@@ -129,16 +107,16 @@ new Chart(document.getElementById('impactChart'), {
         stacked: true,
         grid: { display: false },
         border: { display: false },
-        ticks: { color: textCol, font: { size: 12 } }
+        ticks: { color: '#666', font: { size: 12 } }
       }
     },
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: isDark ? 'rgba(20,20,20,0.95)' : 'rgba(255,255,255,0.97)',
-        titleColor: isDark ? '#fff' : '#111',
-        bodyColor: isDark ? 'rgba(255,255,255,0.6)' : '#555',
-        borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+        backgroundColor: 'rgba(255,255,255,0.97)',
+        titleColor: '#111',
+        bodyColor: '#555',
+        borderColor: 'rgba(0,0,0,0.1)',
         borderWidth: 1,
         padding: 12,
         cornerRadius: 8,
