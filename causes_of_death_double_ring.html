@@ -1,0 +1,161 @@
+
+<div style="padding: 1.5rem 1rem 1rem; font-family: var(--font-sans);">
+
+  <div style="display: flex; justify-content: center; gap: 32px; margin-bottom: 1rem;">
+    <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333;">
+      <span style="display:inline-block;width:18px;height:18px;border-radius:50%;border:3px solid #555;"></span>
+      Inner ring — 2024
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333;">
+      <span style="display:inline-block;width:18px;height:18px;border-radius:50%;border:3px solid #555;opacity:0.5;"></span>
+      Outer ring — 2025
+    </div>
+  </div>
+
+  <div style="position: relative; width: 100%; height: 520px;">
+    <canvas id="doubleRing"></canvas>
+    <div id="legend" style="position: absolute; bottom: 12px; right: 8px; display: flex; flex-direction: column; gap: 5px; pointer-events: none;"></div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 1.5rem;">
+    <div style="background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.75rem 1rem; text-align: center;">
+      <div style="font-size: 11px; color: #555; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em;">Total 2024</div>
+      <div style="font-size: 22px; font-weight: 500; color: #111;">9,197</div>
+    </div>
+    <div style="background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.75rem 1rem; text-align: center;">
+      <div style="font-size: 11px; color: #555; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em;">Total 2025</div>
+      <div style="font-size: 22px; font-weight: 500; color: #111;">7,897</div>
+    </div>
+  </div>
+
+  <div style="display: flex; justify-content: center; margin-top: 1.2rem;">
+    <button id="dlBtn" style="display: flex; align-items: center; gap: 8px; padding: 9px 22px; border-radius: var(--border-radius-md); border: 0.5px solid #aaa; background: transparent; color: #111; font-size: 14px; cursor: pointer;">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M7.5 1v9m0 0L4.5 7m3 3 3-3M2 13h11" stroke="#111" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Download PNG
+    </button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const labels = ['Drowning','Harsh environment','Sickness','Hazardous transport','Violence','Accidental death','Mixed / unknown'];
+const colors = ['#0033A0','#FF671F','#5CB8B2','#FFB81C','#8099D0','#EF413D','#DD8F2C'];
+const colorsOuter = colors.map(c => c + 'B3');
+
+const data2024 = [4645, 848, 685, 835, 835, 322, 1027];
+const data2025 = [4450, 615, 654, 524, 664, 175, 815];
+const total2024 = data2024.reduce((a,b)=>a+b,0);
+const total2025 = data2025.reduce((a,b)=>a+b,0);
+
+const borderCol = 'rgba(255,255,255,0.85)';
+
+const legendEl = document.getElementById('legend');
+labels.forEach((lbl, i) => {
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;align-items:center;gap:6px;';
+  row.innerHTML = `<span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${colors[i]};flex-shrink:0;"></span><span style="font-size:11px;color:#333;">${lbl}</span>`;
+  legendEl.appendChild(row);
+});
+
+Chart.defaults.font.family = 'system-ui, sans-serif';
+const canvasEl = document.getElementById('doubleRing');
+
+const chart = new Chart(canvasEl, {
+  type: 'doughnut',
+  data: {
+    labels,
+    datasets: [
+      {
+        label: '2024',
+        data: data2024,
+        backgroundColor: colors,
+        borderColor: borderCol,
+        borderWidth: 2.5,
+        hoverOffset: 8,
+        weight: 1
+      },
+      {
+        label: '2025',
+        data: data2025,
+        backgroundColor: colorsOuter,
+        borderColor: borderCol,
+        borderWidth: 2.5,
+        hoverOffset: 8,
+        weight: 1
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '58%',
+    layout: { padding: 18 },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: 'rgba(255,255,255,0.97)',
+        titleColor: '#111',
+        bodyColor: '#555',
+        borderColor: 'rgba(0,0,0,0.1)',
+        borderWidth: 1,
+        padding: 12,
+        cornerRadius: 8,
+        callbacks: {
+          title(items) { return items[0].label; },
+          label(item) {
+            const year = item.datasetIndex === 0 ? '2024' : '2025';
+            const total = item.datasetIndex === 0 ? total2024 : total2025;
+            const pct = ((item.parsed / total) * 100).toFixed(1);
+            return ` ${year}: ${item.parsed.toLocaleString()}  (${pct}%)`;
+          }
+        }
+      }
+    },
+    animation: { animateRotate: true, duration: 900, easing: 'easeInOutQuart' }
+  },
+  plugins: [{
+    id: 'centerLabel',
+    afterDraw(ch) {
+      const { ctx, chartArea: { left, right, top, bottom } } = ch;
+      const cx = (left + right) / 2;
+      const cy = (top + bottom) / 2;
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#444';
+      ctx.font = '12px system-ui, sans-serif';
+      ctx.fillText('inner 2024', cx, cy - 8);
+      ctx.fillText('outer 2025', cx, cy + 10);
+      ctx.restore();
+    }
+  }]
+});
+
+document.getElementById('dlBtn').addEventListener('click', () => {
+  const scale = 3;
+  const W = canvasEl.width;
+  const H = canvasEl.height;
+
+  const off = document.createElement('canvas');
+  off.width = W * scale;
+  off.height = H * scale;
+  const offCtx = off.getContext('2d');
+  offCtx.scale(scale, scale);
+  offCtx.clearRect(0, 0, W, H);
+  offCtx.drawImage(canvasEl, 0, 0, W, H);
+
+  const a = document.createElement('a');
+  a.href = off.toDataURL('image/png', 1);
+  a.download = 'causes_of_death_2024_2025.png';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+});
+
+document.getElementById('dlBtn').addEventListener('mouseenter', e => {
+  e.currentTarget.style.background = '#f5f5f5';
+});
+document.getElementById('dlBtn').addEventListener('mouseleave', e => {
+  e.currentTarget.style.background = 'transparent';
+});
+</script>
