@@ -1,0 +1,166 @@
+
+<div style="padding: 1.5rem 1rem 2rem; font-family: var(--font-sans);">
+
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; margin-bottom: 2rem;">
+    <div style="background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.8rem 1rem; text-align: center;">
+      <div style="font-size: 11px; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Countries</div>
+      <div style="font-size: 22px; font-weight: 500; color: var(--color-text-primary);">11</div>
+    </div>
+    <div style="background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.8rem 1rem; text-align: center;">
+      <div style="font-size: 11px; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Dead or missing</div>
+      <div style="font-size: 22px; font-weight: 500; color: var(--color-text-primary);">21,254</div>
+    </div>
+    <div style="background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.8rem 1rem; text-align: center;">
+      <div style="font-size: 11px; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Households affected</div>
+      <div style="font-size: 22px; font-weight: 500; color: var(--color-text-primary);">103,384</div>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 20px; margin-bottom: 1.2rem; flex-wrap: wrap;">
+    <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-text-secondary);">
+      <span style="display:inline-block;width:14px;height:10px;border-radius:2px;background:#0033A0;"></span> Dead or missing
+    </div>
+    <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-text-secondary);">
+      <span style="display:inline-block;width:14px;height:10px;border-radius:2px;background:#8099D0;"></span> Additional household members
+    </div>
+    <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-text-secondary);">
+      <span style="display:inline-block;width:3px;height:14px;background:#FF671F;border-radius:1px;"></span> Uncertainty (±)
+    </div>
+  </div>
+
+  <div style="position: relative; width: 100%; height: 580px;">
+    <canvas id="impactChart"></canvas>
+  </div>
+
+  <div style="margin-top: 1rem; font-size: 11px; color: var(--color-text-secondary); border-top: 0.5px solid var(--color-border-tertiary); padding-top: 0.75rem;">
+    Error bars show estimated uncertainty (±) in total household member counts. Sorted by total household impact.
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const raw = [
+  { country: 'Afghanistan', dead: 5910, household: 42020, unc: 6797 },
+  { country: 'Myanmar',     dead: 4582, household: 15304, unc: 1558 },
+  { country: 'Ethiopia',    dead: 2702, household: 10241, unc: 1513 },
+  { country: 'Syria',       dead: 1472, household:  6756, unc: 1133 },
+  { country: 'Senegal',     dead:  682, household:  5060, unc:  757 },
+  { country: 'Morocco',     dead:  682, household:  5060, unc:  757 },
+  { country: 'Algeria',     dead: 1238, household:  4878, unc:  569 },
+  { country: 'Mexico',      dead: 1764, household:  4833, unc:  388 },
+  { country: 'Pakistan',    dead:  585, household:  3364, unc:  486 },
+  { country: 'Guatemala',   dead:  808, household:  3118, unc:  364 },
+  { country: 'Venezuela',   dead:  821, household:  2750, unc:  189 },
+].sort((a, b) => b.household - a.household);
+
+const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+const gridCol  = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)';
+const textCol  = isDark ? 'rgba(255,255,255,0.75)' : '#333';
+const textMuted = isDark ? 'rgba(255,255,255,0.4)' : '#888';
+
+const errorBarPlugin = {
+  id: 'errorBars',
+  afterDatasetsDraw(chart) {
+    const { ctx, scales } = chart;
+    const xScale = scales.x;
+    const yScale = scales.y;
+    ctx.save();
+    ctx.strokeStyle = '#FF671F';
+    ctx.lineWidth = 2;
+    raw.forEach((d, i) => {
+      const yPos  = yScale.getPixelForValue(i);
+      const xLow  = xScale.getPixelForValue(d.household - d.unc);
+      const xHigh = xScale.getPixelForValue(d.household + d.unc);
+      const cap = 5;
+      ctx.beginPath(); ctx.moveTo(xLow, yPos);     ctx.lineTo(xHigh, yPos);     ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(xLow, yPos-cap);  ctx.lineTo(xLow, yPos+cap);  ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(xHigh, yPos-cap); ctx.lineTo(xHigh, yPos+cap); ctx.stroke();
+    });
+    ctx.restore();
+  }
+};
+
+Chart.register(errorBarPlugin);
+
+new Chart(document.getElementById('impactChart'), {
+  type: 'bar',
+  data: {
+    labels: raw.map(d => d.country),
+    datasets: [
+      {
+        label: 'Dead or missing',
+        data: raw.map(d => d.dead),
+        backgroundColor: '#0033A0',
+        borderColor: '#0033A0',
+        borderWidth: 0,
+        borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 3, bottomRight: 3 },
+        borderSkipped: false,
+        stack: 'a'
+      },
+      {
+        label: 'Additional household members',
+        data: raw.map(d => d.household - d.dead),
+        backgroundColor: isDark ? 'rgba(128,153,208,0.55)' : 'rgba(128,153,208,0.45)',
+        borderColor: isDark ? '#8099D0' : '#8099D0',
+        borderWidth: 0,
+        borderRadius: { topLeft: 3, topRight: 3, bottomLeft: 0, bottomRight: 0 },
+        borderSkipped: false,
+        stack: 'a'
+      }
+    ]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: false,
+    layout: { padding: { right: 24 } },
+    scales: {
+      x: {
+        stacked: true,
+        grid: { color: gridCol },
+        border: { display: false },
+        ticks: {
+          color: textMuted,
+          font: { size: 11 },
+          callback: v => v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v
+        }
+      },
+      y: {
+        stacked: true,
+        grid: { display: false },
+        border: { display: false },
+        ticks: { color: textCol, font: { size: 12 } }
+      }
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: isDark ? 'rgba(20,20,20,0.95)' : 'rgba(255,255,255,0.97)',
+        titleColor: isDark ? '#fff' : '#111',
+        bodyColor: isDark ? 'rgba(255,255,255,0.6)' : '#555',
+        borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+        borderWidth: 1,
+        padding: 12,
+        cornerRadius: 8,
+        mode: 'index',
+        callbacks: {
+          title: items => items[0].label,
+          label(item) {
+            const d = raw[item.dataIndex];
+            if (item.datasetIndex === 0) return ` Dead or missing: ${d.dead.toLocaleString()}`;
+            return ` Additional household members: ${(d.household - d.dead).toLocaleString()}`;
+          },
+          afterBody(items) {
+            const d = raw[items[0].dataIndex];
+            return [
+              ``,
+              ` Total affected: ${d.household.toLocaleString()} (±${d.unc.toLocaleString()})`,
+              ` ~${(d.household / d.dead).toFixed(1)}× household multiplier`
+            ];
+          }
+        }
+      }
+    }
+  }
+});
+</script>
