@@ -76,44 +76,44 @@
     right: 16px;
     top: 68px;
     z-index: 900;
-    width: 220px;
+    width: 178px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
   }
 
   .pcard {
     background: var(--panel);
     border: 0.5px solid var(--border);
-    border-radius: 10px;
-    padding: 12px;
+    border-radius: 8px;
+    padding: 9px 10px;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     box-shadow: 0 4px 18px rgba(0,0,0,0.05);
   }
 
   .pcard h2 {
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--muted);
-    margin-bottom: 10px;
+    margin-bottom: 7px;
   }
 
   .var-group {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 1px;
   }
 
   .var-option {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     cursor: pointer;
-    padding: 6px 8px;
-    border-radius: 7px;
+    padding: 4px 6px;
+    border-radius: 6px;
     transition: background 0.15s ease;
   }
 
@@ -130,8 +130,8 @@
   }
 
   .radio-dot {
-    width: 13px;
-    height: 13px;
+    width: 11px;
+    height: 11px;
     border-radius: 50%;
     border: 2px solid #c8c8c8;
     flex-shrink: 0;
@@ -147,8 +147,8 @@
 
   .radio-dot::after {
     content: '';
-    width: 5px;
-    height: 5px;
+    width: 4px;
+    height: 4px;
     border-radius: 50%;
     background: currentColor;
     opacity: 0;
@@ -160,7 +160,7 @@
   }
 
   .var-label {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text);
     font-weight: 400;
   }
@@ -180,10 +180,10 @@
   .var-option[data-var="Children"] { color: #3A86FF; }
 
   .panel-note {
-    font-size: 10px;
-    line-height: 1.45;
+    font-size: 9px;
+    line-height: 1.4;
     color: var(--muted);
-    margin-top: 8px;
+    margin-top: 6px;
   }
 
   .leaflet-popup-content-wrapper {
@@ -333,9 +333,8 @@
 
   @media (max-width: 600px) {
     #panel {
-      width: calc(100vw - 32px);
+      width: 178px;
       right: 16px;
-      left: 16px;
       top: 68px;
     }
   }
