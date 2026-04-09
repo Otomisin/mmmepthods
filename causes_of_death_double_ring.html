@@ -2,32 +2,33 @@
 <div style="padding: 1.5rem 1rem 1rem; font-family: var(--font-sans);">
 
   <div style="display: flex; justify-content: center; gap: 32px; margin-bottom: 1rem;">
-    <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333;">
+    <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--color-text-secondary);">
       <span style="display:inline-block;width:18px;height:18px;border-radius:50%;border:3px solid #555;"></span>
-      Inner ring — 2024
+      Inner ring — 2025
     </div>
-    <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333;">
+    <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--color-text-secondary);">
       <span style="display:inline-block;width:18px;height:18px;border-radius:50%;border:3px solid #555;opacity:0.5;"></span>
-      Outer ring — 2025
+      Outer ring — 2024
     </div>
   </div>
 
-  <div style="position: relative; width: 100%; height: 520px;">
-    <canvas id="doubleRing"></canvas>
-    <div id="legend" style="position: absolute; bottom: 12px; right: 8px; display: flex; flex-direction: column; gap: 5px; pointer-events: none;"></div>
+  <div style="display: flex; align-items: center; justify-content: center; gap: 0;">
+    <div style="position: relative; width: 460px; max-width: 100%; height: 460px; flex-shrink: 0;">
+      <canvas id="doubleRing" role="img" aria-label="Double ring doughnut chart comparing causes of migrant deaths in 2025 (inner) and 2024 (outer). Drowning is the leading cause in both years.">Causes of death comparison 2024 vs 2025: Drowning, harsh environment, sickness, hazardous transport, violence, accidental death, mixed/unknown.</canvas>
+    </div>
+    <div id="legend" style="display: flex; flex-direction: column; gap: 7px; flex-shrink: 0;"></div>
   </div>
 
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 1.5rem;">
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 1rem;">
     <div style="background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.75rem 1rem; text-align: center;">
-      <div style="font-size: 11px; color: #555; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em;">Total 2024</div>
-      <div style="font-size: 22px; font-weight: 500; color: #111;">9,197</div>
+      <div style="font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em;">Total 2024</div>
+      <div style="font-size: 22px; font-weight: 500; color: var(--color-text-primary);">9,197</div>
     </div>
     <div style="background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.75rem 1rem; text-align: center;">
-      <div style="font-size: 11px; color: #555; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em;">Total 2025</div>
-      <div style="font-size: 22px; font-weight: 500; color: #111;">7,897</div>
+      <div style="font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em;">Total 2025</div>
+      <div style="font-size: 22px; font-weight: 500; color: var(--color-text-primary);">7,897</div>
     </div>
   </div>
-
 
 </div>
 
@@ -48,21 +49,18 @@ const legendEl = document.getElementById('legend');
 labels.forEach((lbl, i) => {
   const row = document.createElement('div');
   row.style.cssText = 'display:flex;align-items:center;gap:6px;';
-  row.innerHTML = `<span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${colors[i]};flex-shrink:0;"></span><span style="font-size:11px;color:#333;">${lbl}</span>`;
+  row.innerHTML = `<span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${colors[i]};flex-shrink:0;"></span><span style="font-size:12px;color:var(--color-text-secondary);">${lbl}</span>`;
   legendEl.appendChild(row);
 });
 
-Chart.defaults.font.family = 'system-ui, sans-serif';
-const canvasEl = document.getElementById('doubleRing');
-
-const chart = new Chart(canvasEl, {
+new Chart(document.getElementById('doubleRing'), {
   type: 'doughnut',
   data: {
     labels,
     datasets: [
       {
-        label: '2024',
-        data: data2024,
+        label: '2025',
+        data: data2025,
         backgroundColor: colors,
         borderColor: borderCol,
         borderWidth: 2.5,
@@ -70,8 +68,8 @@ const chart = new Chart(canvasEl, {
         weight: 1
       },
       {
-        label: '2025',
-        data: data2025,
+        label: '2024',
+        data: data2024,
         backgroundColor: colorsOuter,
         borderColor: borderCol,
         borderWidth: 2.5,
@@ -84,7 +82,7 @@ const chart = new Chart(canvasEl, {
     responsive: true,
     maintainAspectRatio: false,
     cutout: '58%',
-    layout: { padding: 18 },
+    layout: { padding: 8 },
     plugins: {
       legend: { display: false },
       tooltip: {
@@ -98,8 +96,8 @@ const chart = new Chart(canvasEl, {
         callbacks: {
           title(items) { return items[0].label; },
           label(item) {
-            const year = item.datasetIndex === 0 ? '2024' : '2025';
-            const total = item.datasetIndex === 0 ? total2024 : total2025;
+            const year = item.datasetIndex === 0 ? '2025' : '2024';
+            const total = item.datasetIndex === 0 ? total2025 : total2024;
             const pct = ((item.parsed / total) * 100).toFixed(1);
             return ` ${year}: ${item.parsed.toLocaleString()}  (${pct}%)`;
           }
@@ -107,50 +105,6 @@ const chart = new Chart(canvasEl, {
       }
     },
     animation: { animateRotate: true, duration: 900, easing: 'easeInOutQuart' }
-  },
-  plugins: [{
-    id: 'centerLabel',
-    afterDraw(ch) {
-      const { ctx, chartArea: { left, right, top, bottom } } = ch;
-      const cx = (left + right) / 2;
-      const cy = (top + bottom) / 2;
-      ctx.save();
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = '#444';
-      ctx.font = '12px system-ui, sans-serif';
-      ctx.fillText('inner 2024', cx, cy - 8);
-      ctx.fillText('outer 2025', cx, cy + 10);
-      ctx.restore();
-    }
-  }]
-});
-
-document.getElementById('dlBtn').addEventListener('click', () => {
-  const scale = 3;
-  const W = canvasEl.width;
-  const H = canvasEl.height;
-
-  const off = document.createElement('canvas');
-  off.width = W * scale;
-  off.height = H * scale;
-  const offCtx = off.getContext('2d');
-  offCtx.scale(scale, scale);
-  offCtx.clearRect(0, 0, W, H);
-  offCtx.drawImage(canvasEl, 0, 0, W, H);
-
-  const a = document.createElement('a');
-  a.href = off.toDataURL('image/png', 1);
-  a.download = 'causes_of_death_2024_2025.png';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-});
-
-document.getElementById('dlBtn').addEventListener('mouseenter', e => {
-  e.currentTarget.style.background = '#f5f5f5';
-});
-document.getElementById('dlBtn').addEventListener('mouseleave', e => {
-  e.currentTarget.style.background = 'transparent';
+  }
 });
 </script>
