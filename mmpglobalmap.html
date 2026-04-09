@@ -10,7 +10,7 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-	  --c1: #0033A0;   /* main background */
+	  --c1: #0033A0;
 	  --panel: rgba(255,255,255,0.72);
 	  --border: rgba(0,0,0,0.09);
 	  --text: #1a1a1a;
@@ -70,10 +70,11 @@
     white-space: nowrap;
   }
 
+  /* Moved panel to upper-right, below topbar */
   #panel {
     position: absolute;
-    left: 16px;
-    bottom: 16px;
+    right: 16px;
+    top: 68px;
     z-index: 900;
     width: 220px;
     display: flex;
@@ -174,7 +175,7 @@
   .var-option[data-var="Total"]    { color: #FFB81C; }
   .var-option[data-var="Dead"]     { color: #D22630; }
   .var-option[data-var="Missing"]  { color: #2A9D8F; }
-  .var-option[data-var="Females"]  { color: #FF671F }
+  .var-option[data-var="Females"]  { color: #FF671F; }  /* fixed to match bubble */
   .var-option[data-var="Males"]    { color: #F4A261; }
   .var-option[data-var="Children"] { color: #3A86FF; }
 
@@ -238,24 +239,39 @@
     font-family: 'DM Mono', monospace;
   }
 
-	.popup-stat .val.highlight {
-	  color: #FFB81C;
-	}
+  .popup-stat .val.highlight {
+    color: #FFB81C;
+  }
 
   .popup-footer {
     border-top: 0.5px solid var(--border);
     padding: 8px 16px;
-    font-size: 10px;
-    color: var(--muted);
     display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 5px;
   }
 
-  .pill {
-    background: #f0f0f0;
-    border-radius: 20px;
-    padding: 2px 8px;
+  .popup-footer-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+
+  .footer-label {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: #aaa;
+    white-space: nowrap;
+    min-width: 44px;
+  }
+
+  .footer-value {
+    font-size: 11px;
+    color: var(--text);
+    font-weight: 400;
+    line-height: 1.3;
   }
 
   #loading {
@@ -318,9 +334,9 @@
   @media (max-width: 600px) {
     #panel {
       width: calc(100vw - 32px);
-      left: 16px;
       right: 16px;
-      bottom: 16px;
+      left: 16px;
+      top: 68px;
     }
   }
 </style>
@@ -412,7 +428,7 @@ const VAR_COLORS = {
   Total: '#FFB81C',
   Dead: '#D22630',
   Missing: '#2A9D8F',
-  Females: '#9B5DE5',
+  Females: '#FF671F',   /* fixed to match CSS */
   Males: '#F4A261',
   Children: '#3A86FF'
 };
@@ -457,6 +473,11 @@ function formatCount(val) {
   return Math.round(val).toLocaleString();
 }
 
+function truncate(str, n) {
+  if (!str) return '—';
+  return str.length > n ? str.slice(0, n).trim() + '…' : str;
+}
+
 function updateCounts() {
   VARS.forEach(v => {
     const total = allData.reduce((sum, row) => sum + getVal(row, v), 0);
@@ -466,10 +487,9 @@ function updateCounts() {
 }
 
 function buildPopup(row) {
-  const causeShort = (row['Cause of Death'] || 'Unknown')
-    .split('/')[0]
-    .trim()
-    .slice(0, 60);
+  const cause = truncate((row['Cause of Death'] || '').split('/')[0].trim(), 40);
+  const incident = truncate(row['Country of Incident'], 30);
+  const origin = truncate(row['Country of Origin'], 30);
 
   return `
     <div class="popup-inner">
@@ -485,9 +505,18 @@ function buildPopup(row) {
       </div>
     </div>
     <div class="popup-footer">
-      <span class="pill">${row['Country of Incident'] || '—'}</span>
-      <span class="pill">${row['Country of Origin'] || '—'}</span>
-      <span class="pill">${causeShort}</span>
+      <div class="popup-footer-row">
+        <span class="footer-label">Incident</span>
+        <span class="footer-value">${incident}</span>
+      </div>
+      <div class="popup-footer-row">
+        <span class="footer-label">Origin</span>
+        <span class="footer-value">${origin}</span>
+      </div>
+      <div class="popup-footer-row">
+        <span class="footer-label">Cause</span>
+        <span class="footer-value">${cause}</span>
+      </div>
     </div>
   `;
 }
@@ -517,18 +546,13 @@ function createMarkersOnce() {
     circle.bindPopup(buildPopup(row), { maxWidth: 300 });
     circle.addTo(map);
 
-    markerObjects.push({
-      row,
-      circle,
-      index
-    });
+    markerObjects.push({ row, circle, index });
   });
 }
 
 function shouldPulse(index, val, maxVal) {
   if (val <= 0) return false;
   if (val < 2) return false;
-
   const normalized = val / maxVal;
   return index % 3 === 0 || normalized >= 0.45;
 }
@@ -543,15 +567,8 @@ function updateMarkers() {
 
     if (radius <= 0) {
       obj.circle.setRadius(0);
-      obj.circle.setStyle({
-        fillOpacity: 0,
-        opacity: 0,
-        weight: 0
-      });
-
-      if (obj.circle._path) {
-        obj.circle._path.classList.remove('pulse-marker');
-      }
+      obj.circle.setStyle({ fillOpacity: 0, opacity: 0, weight: 0 });
+      if (obj.circle._path) obj.circle._path.classList.remove('pulse-marker');
       return;
     }
 
